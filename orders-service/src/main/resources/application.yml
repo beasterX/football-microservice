@@ -1,0 +1,91 @@
+# Default Spring Profile
+#spring:
+#    profiles:
+#        active: h2
+server:
+    error:
+        include-message: always
+
+logging:
+    level:
+        root: INFO
+        com.footballstore.orders: DEBUG
+        org.springframework.data.mongodb.core.MongoTemplate: DEBUG
+        org.mongodb.driver: DEBUG
+        org.springframework.data.mongodb.embedded: DEBUG
+
+spring:
+    application:
+        name: orders-service
+
+
+---
+
+# for test
+spring:
+    config:
+        activate:
+            on-profile: test
+
+    data:
+        mongodb:
+            host: localhost
+            port: 0
+            database: orders-db
+            username: user
+            password: pwd
+            authentication-database: admin
+            auto-index-creation: true
+
+de:
+    flapdoodle:
+        mongodb:
+            embedded:
+                version: 5.0.5
+
+app:
+    customers-service:
+        host: localhost
+        port: 7001
+    apparels-service:
+        host: localhost
+        port: 7002
+    warehouses-service:
+        host: localhost
+        port: 7003
+
+---
+
+# for docker
+spring:
+    config:
+        activate:
+            on-profile: docker
+
+    data:
+        mongodb:
+            host: mongodb
+            port: 27017
+            database: orders-db
+            username: user
+            password: pwd
+            authentication-database: admin
+            auto-index-creation: true
+    autoconfigure:
+        exclude:
+            - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
+            - org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration
+
+server:
+    port: 8080
+
+app:
+    customers-service:
+        host: customers-service
+        port: 8080
+    apparels-service:
+        host: apparels-service
+        port: 8080
+    warehouses-service:
+        host: warehouses-service
+        port: 8080

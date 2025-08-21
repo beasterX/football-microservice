@@ -1,0 +1,5 @@
+include 'apparels-service'
+include 'customers-service'
+include 'warehouses-service'
+include 'orders-service'
+include 'api-gateway'
