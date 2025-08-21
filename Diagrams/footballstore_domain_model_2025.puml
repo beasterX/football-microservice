@@ -1,0 +1,171 @@
+@startuml
+hide circle
+top to bottom direction
+scale 0.2
+
+!define ENTITY(x) class x << Entity >>
+!define AGGREGATE_ROOT(x) class x << Aggregate Root >>
+!define VALUE_OBJECT(x) class x << Value Object >>
+!define ENUM(x) class x << Enum >>
+!pragma useVerticalIf on
+
+skinparam dpi 350
+skinparam packageStyle rectangle
+skinparam rectangle {
+  BackgroundColor #f7f4eb
+  BorderColor Black
+}
+
+rectangle "Football Store Domain" as Domain {
+
+  Package "Apparel Sub-Domain" as ApparelSD <<Rectangle>> #LightGreen {
+    ENTITY(Apparel) #lightpink {
+      apparelIdentifier: UUID
+      itemName: String
+      description: String
+      brand: String
+      price: Decimal
+      cost: Decimal
+      stock: Integer
+      apparelType: ApparelType
+      sizeOption: SizeOption
+    }
+
+    VALUE_OBJECT(ApparelIdentifier) #Bisque {
+      apparelIdentifier: UUID
+    }
+
+    ENUM(ApparelType) {
+      JERSEY
+      SHORTS
+      SHOES
+    }
+
+    ENUM(SizeOption) {
+      XS
+      S
+      M
+      L
+      XL
+    }
+
+    Apparel "1" *-- "1" ApparelIdentifier
+    Apparel --> "1" ApparelType
+    Apparel --> "1" SizeOption
+  }
+
+  Package "Customer Sub-Domain" as CustomerSD <<Rectangle>> #LightBlue {
+    AGGREGATE_ROOT(Customer) #lightblue {
+      customerIdentifier: UUID
+      firstName: String
+      lastName: String
+      email: String
+      phone: String
+      registrationDate: Date
+      preferredContact: ContactMethod
+      address: Address
+    }
+
+    VALUE_OBJECT(CustomerIdentifier) #Bisque {
+      customerIdentifier: UUID
+    }
+    VALUE_OBJECT(Address) #Bisque {
+      street: String
+      city: String
+      state: String
+      postalCode: String
+      country: String
+    }
+
+    ENUM(ContactMethod) {
+      EMAIL
+      PHONE
+      SMS
+    }
+
+    Customer "1" *-- "1" CustomerIdentifier
+    Customer "1" *-- "1" Address
+    Customer --> "1" ContactMethod
+  }
+
+  Package "Warehouse Sub-Domain" as WarehouseSD <<Rectangle>> #LightSalmon {
+    ENTITY(Warehouse) #lightpink {
+      warehouseIdentifier: UUID
+      locationName: String
+      address: String
+      capacity: Integer
+    }
+
+    VALUE_OBJECT(WarehouseIdentifier) #Bisque {
+      warehouseIdentifier: UUID
+    }
+
+    Warehouse "1" *-- "1" WarehouseIdentifier
+  }
+
+  Package "Order Sub-Domain" as OrderSD <<Rectangle>> #LightGreen {
+    AGGREGATE_ROOT(Order) #lightgreen {
+      orderIdentifier: UUID
+      orderDate: Date
+      price: OrderPrice
+      status: OrderStatus
+      paymentStatus: PaymentStatus
+    }
+
+    VALUE_OBJECT(OrderIdentifier) #Bisque {
+      orderIdentifier: UUID
+    }
+
+    VALUE_OBJECT(OrderPrice) #Bisque {
+      amount: Decimal
+      currency: String
+    }
+
+    ENTITY(OrderItem) #lightpink {
+      orderItemIdentifier: UUID
+      apparelIdentifier: ApparelIdentifier
+      quantity: Integer
+      unitPrice: Decimal
+      discount: Decimal
+      lineTotal: Decimal
+    }
+
+    VALUE_OBJECT(OrderItemIdentifier) #Bisque {
+      orderItemIdentifier: UUID
+    }
+
+    ENUM(OrderStatus) {
+      CREATED
+      PROCESSING
+      SHIPPED
+      DELIVERED
+      CANCELLED
+    }
+
+    ENUM(PaymentStatus) {
+      PENDING
+      AUTHORIZED
+      PAID
+      REFUNDED
+    }
+
+    Order "1" *-- "1" OrderIdentifier
+    Order "1" *-- "1" OrderPrice
+    Order "1" *-- "1..*" OrderItem
+    OrderItem "1" *-- "1" OrderItemIdentifier
+    Order --> "1" OrderStatus
+    Order --> "1" PaymentStatus
+    OrderItem --> "1" ApparelIdentifier
+
+    note bottom of Order
+      Invariant:
+      • (OrderItem.lineTotal) = OrderPrice.amount
+      • Each OrderItem.quantity ≤ Apparel.stock
+    end note
+  }
+
+  Order --> "1" CustomerIdentifier
+  Order --> "1" WarehouseIdentifier
+}
+
+@enduml

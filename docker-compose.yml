@@ -1,0 +1,184 @@
+version: '3.8'
+
+services:
+  api-gateway:
+    build: api-gateway
+    container_name: api-gateway
+    hostname: api-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    depends_on:
+      - customers-service
+      - apparels-service
+      - warehouses-service
+      - orders-service
+
+  customers-service:
+    build: customers-service
+    container_name: customers-service
+    hostname: customers-service
+    expose:
+      - "8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    depends_on:
+      mysql1:
+        condition: service_healthy
+
+  apparels-service:
+    build: apparels-service
+    container_name: apparels-service
+    hostname: apparels-service
+    expose:
+      - "8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    depends_on:
+      postgres1:
+        condition: service_healthy
+
+  warehouses-service:
+    build: warehouses-service
+    container_name: warehouses-service
+    hostname: warehouses-service
+    expose:
+      - "8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    depends_on:
+      mysql3:
+        condition: service_healthy
+
+  orders-service:
+    build: orders-service
+    container_name: orders-service
+    hostname: orders-service
+    expose:
+      - "8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    depends_on:
+      - customers-service
+      - apparels-service
+      - warehouses-service
+      - mongodb
+
+  mysql1:
+    image: mysql:5.7
+    hostname: mysql1
+    container_name: mysql1-customers
+    ports:
+      - "3307:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=rootpwd
+      - MYSQL_DATABASE=customers-db
+      - MYSQL_USER=user
+      - MYSQL_PASSWORD=pwd
+    volumes:
+      - ./data/mysql1:/var/lib/mysql
+      - ./data/init.d:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-uuser", "-ppwd", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  phpmyadmin1:
+    image: phpmyadmin:5.2.0
+    container_name: phpmyadmin1-customers
+    hostname: phpmyadmin1
+    links:
+      - mysql1
+    restart: always
+    ports:
+      - "5016:80"
+    environment:
+      - PMA_ARBITRARY=1
+
+  postgres1:
+    image: postgres:latest
+    container_name: postgres1-apparels
+    hostname: postgres1
+    environment:
+      - POSTGRES_USER=user
+      - PGUSER=user
+      - POSTGRES_PASSWORD=pwd
+      - POSTGRES_DB=apparels-db
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: "pg_isready -h postgres1"
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  pgadmin1:
+    image: dpage/pgadmin4:latest
+    container_name: pgadmin1-apparels
+    restart: always
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=admin@mir.com
+      - PGADMIN_DEFAULT_PASSWORD=admin
+    ports:
+      - "9000:80"
+    depends_on:
+      - postgres1
+
+  mysql3:
+    image: mysql:5.7
+    hostname: mysql3
+    container_name: mysql3-warehouses
+    ports:
+      - "3309:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=rootpwd
+      - MYSQL_DATABASE=warehouses-db
+      - MYSQL_USER=user
+      - MYSQL_PASSWORD=pwd
+    volumes:
+      - ./data/mysql3:/var/lib/mysql
+      - ./data/init.d:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-uuser", "-ppwd", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  phpmyadmin3:
+    image: phpmyadmin:5.2.0
+    container_name: phpmyadmin3-warehouses
+    hostname: phpmyadmin3
+    links:
+      - mysql3
+    restart: always
+    ports:
+      - "5015:80"
+    environment:
+      - PMA_ARBITRARY=1
+
+  mongodb:
+    image: mongo
+    container_name: mongo_db
+    ports:
+      - 27017:27017
+    volumes:
+      - mongo:/data
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=user
+      - MONGO_INITDB_ROOT_PASSWORD=pwd
+
+  mongo-express:
+    image: mongo-express
+    container_name: mongo-express
+    restart: always
+    ports:
+      - 8085:8081
+    environment:
+      - ME_CONFIG_MONGODB_ADMINUSERNAME=user
+      - ME_CONFIG_MONGODB_ADMINPASSWORD=pwd
+      - ME_CONFIG_MONGODB_SERVER=mongodb
+
+volumes:
+  mongo: { }

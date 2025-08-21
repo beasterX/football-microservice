@@ -1,0 +1,45 @@
+@startuml
+!includeurl https://raw.githubusercontent.com/RicardoNiepel/C4-PlantUML/master/C4_Container.puml
+!define DEVICONS https://raw.githubusercontent.com/tupadr3/plantuml-icon-font-sprites/master/devicons
+!define FONTAWESOME https://raw.githubusercontent.com/tupadr3/plantuml-icon-font-sprites/master/font-awesome-5
+!include FONTAWESOME/users.puml
+AddElementTag("microService", $shape=EightSidedShape(), $bgColor="CornflowerBlue", $fontColor="white", $legendText="micro service\neight sided")
+AddElementTag("storage", $shape=RoundedBoxShape(), $bgColor="lightSkyBlue", $fontColor="white")
+AddRelTag(aggregate_root, $lineColor="red")
+LAYOUT_TOP_DOWN()
+SHOW_PERSON_OUTLINE()
+title Container Diagram for Football Store System
+Person(customer, "Customer", "Customer of the Football Store")
+Person(warehouseManager,"Warehouse Manager","Manages warehouse inventory via the SPA")
+Person(apparelSeller, "Apparel Seller", "Manages apparel catalog via the SPA")
+System_Boundary(fss, "Football Store System") {
+  Container(webapp, "Web Application", "JavaScript, React", "Delivers static content and the SPA to the customer's browser")
+  Container(spa, "Single-Page Application", "JavaScript, React", "Provides the football store UI to customers and staff")
+  Container(api_gateway, "API-Gateway", "Java, Spring Boot", "Provides football store functionality via a JSON/REST HTTPS API", $tags="microService")
+  Container(orders_service, "orders-service", "Java, Spring Boot", "Aggregate-pattern order use cases via JSON/REST/HTTPS", $tags="microService")
+  Container(customers_service, "customers-service", "Java, Spring Boot", "Customer CRUD via JSON/REST/HTTPS", $tags="microService")
+  Container(apparels_service, "apparels-service", "Java, Spring Boot", "Apparel CRUD via JSON/REST/HTTPS", $tags="microService")
+  Container(warehouses_service,"warehouses-service", "Java, Spring Boot", "Warehouse stock via JSON/REST/HTTPS", $tags="microService")
+  ContainerDb(orders_db, "Orders DB", "MongoDB", "Stores order documents", $tags="storage")
+  ContainerDb(customers_db, "Customers DB", "MySQL 5.5x", "Stores customer records", $tags="storage")
+  ContainerDb(apparels_db, "Apparels DB", "Postgres", "Stores apparel product information", $tags="storage")
+  ContainerDb(warehouses_db, "Warehouses DB", "MySQL 5.5x", "Stores warehouse inventory", $tags="storage")
+}
+Rel(customer, webapp, "Visits footballstore.com", "HTTPS")
+Rel(customer, spa, "Browses products and places orders", "HTTPS")
+Rel(warehouseManager, spa, "Manages warehouse inventory", "HTTPS")
+Rel(apparelSeller, spa, "Manages apparel catalog", "HTTPS")
+Rel(webapp, spa, "Delivers to the customer's browser")
+Rel(spa, api_gateway, "Makes API calls to", "JSON/REST/HTTPS")
+Rel(api_gateway, orders_service, "Forwards requests to", "JSON/REST/HTTPS")
+Rel(api_gateway, customers_service, "Forwards requests to", "JSON/REST/HTTPS")
+Rel(api_gateway, apparels_service, "Forwards requests to", "JSON/REST/HTTPS")
+Rel(api_gateway, warehouses_service,"Forwards requests to", "JSON/REST/HTTPS")
+Rel(orders_service, customers_service, "Makes API calls to", "JSON/REST/HTTPS", $tags="aggregate_root")
+Rel(orders_service, apparels_service, "Makes API calls to", "JSON/REST/HTTPS", $tags="aggregate_root")
+Rel(orders_service, warehouses_service, "Makes API calls to", "JSON/REST/HTTPS", $tags="aggregate_root")
+Rel(orders_service, orders_db, "Reads from and writes to", "MongoDB")
+Rel(customers_service, customers_db, "Reads from and writes to", "JDBC/MySQL")
+Rel(apparels_service, apparels_db, "Reads from and writes to", "JDBC/PostgreSQL")
+Rel(warehouses_service, warehouses_db, "Reads from and writes to", "JDBC/MySQL")
+@enduml

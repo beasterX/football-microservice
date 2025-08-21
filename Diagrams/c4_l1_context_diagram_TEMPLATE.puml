@@ -1,0 +1,16 @@
+@startuml
+!includeurl https://raw.githubusercontent.com/RicardoNiepel/C4-PlantUML/master/C4_Context.puml
+
+title System Context Diagram for Football Store
+
+Person(customer, "Customer", "Customer of the Football store")
+Person(warehouseManager, "Warehouse Manager", "A warehouse manager")
+Person(apparelSeller, "Apparel Seller/Manager", "An apparel seller/manager")
+
+System(footballStore, "Football Store System", "Handles orders, customer information, warehouse data, and apparel details")
+
+Rel(customer, footballStore, "browses products and places orders", "Uses")
+Rel(warehouseManager, footballStore, "manages warehouse operations", "Uses")
+Rel(apparelSeller, footballStore, "updates apparel inventory", "Uses")
+
+@enduml

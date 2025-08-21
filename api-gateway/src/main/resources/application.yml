@@ -1,0 +1,44 @@
+# Default Profile
+server:
+    error:
+        include-message: always
+logging:
+    level:
+        root: INFO
+        com.footballstore.apigateway: DEBUG
+app:
+    customers-service:
+        host: localhost
+        port: 7001
+    orders-service:
+        host: localhost
+        port: 7002
+    apparels-service:
+        host: localhost
+        port: 7003
+    warehouses-service:
+        host: localhost
+        port: 7004
+
+
+---
+# Profile for Docker (SPRING_PROFILES_ACTIVE=docker)
+spring:
+    config:
+        activate:
+            on-profile: docker
+server:
+    port: 8080
+app:
+    customers-service:
+        host: customers-service
+        port: 8080
+    orders-service:
+        host: orders-service
+        port: 8080  
+    apparels-service:
+        host: apparels-service
+        port: 8080
+    warehouses-service:
+        host: warehouses-service
+        port: 8080
